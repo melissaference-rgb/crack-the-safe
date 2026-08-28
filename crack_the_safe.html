@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RT Method: Obfuscation</title>
+<style>
+  :root {
+    --navy: #002d45;
+    --lime: #c1f400;
+    --check-green: #6b9b00;
+    --muted: #777;
+    --border: #ddd;
+    --bg-light: #fafafa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    background: #fff;
+    color: #333;
+    margin: 0;
+    padding: 24px;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { color: var(--navy); font-size: 20px; margin: 0 0 14px 0; }
+  h2 {
+    color: var(--navy);
+    font-size: 16px;
+    margin: 26px 0 10px 0;
+    border-bottom: 2px solid var(--lime);
+    padding-bottom: 6px;
+  }
+  h3 { color: var(--navy); font-size: 14.5px; margin: 18px 0 8px 0; }
+  p { font-size: 15px; margin: 0 0 14px 0; }
+  ul { margin: 0 0 14px 0; padding-left: 22px; }
+  li { font-size: 15px; margin: 4px 0; }
+  code {
+    background: var(--bg-light);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13.5px;
+  }
+
+  .hero-image {
+    width: 100%;
+    max-width: 700px;
+    height: 220px;
+    display: block;
+    margin: 0 auto 20px auto;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--bg-light);
+  }
+
+  .tip-callout {
+    background: #f9fff0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 20px 0;
+    font-size: 14px;
+    color: var(--navy);
+  }
+
+  .game-card {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin: 20px 0;
+  }
+  .level-badge {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--check-green);
+    margin-bottom: 4px;
+  }
+  .level-title { color: var(--navy); font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+  .guard-desc { font-size: 14px; margin-bottom: 14px; }
+
+  label { display: block; font-size: 13px; color: var(--navy); font-weight: bold; margin-bottom: 4px; }
+  input[type="text"] {
+    width: 100%;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+  input[type="text"]:focus { outline: 2px solid var(--navy); border-color: var(--navy); }
+
+  button {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    background: var(--navy);
+    color: #fff;
+    margin-right: 8px;
+  }
+  button.hint-btn { background: #fff; color: var(--navy); border: 1px solid var(--navy); }
+  button:disabled { background: #bbb; cursor: not-allowed; }
+  button.next-btn { background: var(--check-green); display: none; }
+  button.next-btn.visible { display: inline-block; }
+
+  .feedback { font-size: 14px; margin-top: 12px; padding: 10px 14px; border-radius: 8px; }
+  .feedback.win { background: #f9fff0; border: 1px solid var(--lime); color: var(--navy); }
+  .feedback.lose { background: #fff; border: 1px solid var(--border); color: #555; }
+
+  .hint-text {
+    display: none;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+    border-left: 3px solid var(--lime);
+    padding-left: 12px;
+    margin-top: 10px;
+  }
+  .hint-text.visible { display: block; }
+
+  .lesson-panel {
+    display: none;
+    background: var(--navy);
+    color: #fff;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    font-size: 14px;
+  }
+  .lesson-panel.visible { display: block; }
+  .lesson-panel .label {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 11px;
+    color: var(--lime);
+    margin-bottom: 6px;
+  }
+
+  .progress { display: flex; gap: 6px; margin: 20px 0; }
+  .progress .dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border); }
+  .progress .dot.done { background: var(--check-green); }
+  .progress .dot.current { background: var(--lime); }
+
+  .complete-banner {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+  }
+  .complete-banner h2 { color: #fff; border: none; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>RT Method: Obfuscation</h1>
+
+  <p>Many of a model's defenses work by recognizing something: a banned word, a familiar harmful phrase, a known pattern. Obfuscation is the art of hiding the recognizable form of a request while keeping the meaning the model can still recover. By the end of this page, you will be able to explain how obfuscation slips past filters and describe several common obfuscation methods.</p>
+
+  <h2>An overview of obfuscation methods</h2>
+
+  <p><strong>Codes and ciphers.</strong> Encode your text so a filter scanning for plain words finds nothing to catch, while the model can still decode the meaning. Common examples include:</p>
+  <ul>
+    <li>Leetspeak, swapping letters for similar-looking numbers or symbols, so "open" becomes "0p3n."</li>
+    <li>Base64, which turns ordinary text into a string of letters and numbers that many models can still read.</li>
+    <li>The Caesar cipher, which shifts each letter a fixed number of places down the alphabet.</li>
+    <li>The Vigenere cipher, which shifts letters using a keyword.</li>
+  </ul>
+  <p>A useful hint: inventing your own code is often more effective than a famous one. A filter may be trained to recognize base64 or a Caesar shift, but it has never seen the scheme you just made up.</p>
+
+  <p><strong>Misspellings.</strong> Small spelling changes can dodge a filter looking for exact words, while a reader, human or model, still understands them.</p>
+  <p><strong>Emojis.</strong> Replacing words or letters with emoji, or scattering them through a message, can disguise the underlying meaning from a pattern-matching filter.</p>
+  <p><strong>Cutting off words.</strong> Truncating or breaking words apart can stop a filter from matching them, while the meaning stays recoverable from context.</p>
+
+  <h3>A few more worth knowing</h3>
+  <ul>
+    <li>Inserting characters or spaces between letters, so "o p e n" no longer matches "open."</li>
+    <li>Look-alike characters, swapping a normal letter for a near-identical one from another alphabet.</li>
+    <li>Splitting or reversing words, then asking the model to reassemble them.</li>
+    <li>Switching languages, since a filter tuned for one language may miss another.</li>
+  </ul>
+
+  <h2>Why it works</h2>
+  <p>Obfuscation targets a specific weakness. Filters often scan for recognizable forms, but models are good at recovering meaning from messy, encoded, or unusual input. That gap, between what a filter recognizes and what a model understands, is the opening. The more unusual your obfuscation, the less likely any filter was built to catch it. As with every technique here, this is for sanctioned practice and authorized testing only.</p>
+
+  <h2>Interactive: Crack the Safe</h2>
+  <img class="hero-image" id="heroImage" alt="Illustration placeholder: a friendly guard figure standing beside a vault-style safe, its door slightly ajar with a lime glow, suggesting it can be cracked">
+  <p>Your goal is simple: get the safe to open. The catch is that a guard is watching, and it blocks anything that looks like the plain command. You will have to disguise your words so the guard does not recognize them, while the safe still can.</p>
+
+  <div class="tip-callout">
+    Every level targets the same harmless phrase: <code>open the safe</code>. Type your disguised version in the first box, and what it actually means in plain English in the second box, so the safe can check you really encoded the right thing.
+  </div>
+
+  <div class="progress" id="progress"></div>
+  <div id="game"></div>
+
+  <div class="complete-banner" id="completeBanner" style="display:none;">
+    <h2>The safe is open</h2>
+    <p style="margin:0;">Every level was the same idea against a smarter guard: hide the recognizable form, keep the meaning recoverable. Real filters work the same way, and the techniques that just cracked this safe are the same ones that crack real ones.</p>
+  </div>
+
+</div>
+
+<script>
+document.getElementById("heroImage").src = "hero.png";
+
+function normalizeLeet(s) {
+  return s
+    .toLowerCase()
+    .replace(/0/g, "o")
+    .replace(/1/g, "i")
+    .replace(/3/g, "e")
+    .replace(/4/g, "a")
+    .replace(/5/g, "s")
+    .replace(/7/g, "t")
+    .replace(/@/g, "a")
+    .replace(/\$/g, "s")
+    .replace(/[^a-z]/g, "");
+}
+
+function recognizable(s) {
+  const norm = normalizeLeet(s);
+  const openIdx = norm.indexOf("open");
+  const safeIdx = norm.indexOf("safe");
+  return openIdx !== -1 && safeIdx !== -1 && openIdx < safeIdx;
+}
+
+function tryBase64(s) {
+  try {
+    const decoded = atob(s.trim());
+    return recognizable(decoded);
+  } catch (e) {
+    return false;
+  }
+}
+
+function caesarShift(s, shift) {
+  return s.replace(/[a-zA-Z]/g, (ch) => {
+    const base = ch === ch.toLowerCase() ? 97 : 65;
+    return String.fromCharCode(((ch.charCodeAt(0) - base - shift + 26) % 26) + base);
+  });
+}
+
+function tryCaesar(s) {
+  for (let shift = 1; shift <= 25; shift++) {
+    if (recognizable(caesarShift(s, shift))) return true;
+  }
+  return false;
+}
+
+function reverseStr(s) {
+  return s.split("").reverse().join("");
+}
+
+function removeSpaces(s) {
+  return s.replace(/\s/g, "");
+}
+
+const levels = [
+  {
+    title: "Level 1: The exact-match guard",
+    desc: "The guard blocks the precise phrase. Change it just enough that it no longer matches, while staying readable.",
+    lesson: "Filters that look for exact words are fragile, and even a tiny change can slip past.",
+    hint: "Add a word, a space, a letter &#8212; anything that makes the string not identical to the banned phrase, while a reader could still tell what you mean.",
+    guardBlocks: (raw) => raw.trim().toLowerCase() === "open the safe",
+  },
+  {
+    title: "Level 2: The keyword guard",
+    desc: "Now the guard blocks the words and their obvious misspellings. Hide the phrase inside an encoding the guard does not read but the safe can.",
+    lesson: "Encoding hides the content from a filter that only scans plain text.",
+    hint: "Try a well-known encoding, like Base64 or a Caesar shift. The guard here isn't looking for those yet.",
+    guardBlocks: (raw) => recognizable(raw),
+  },
+  {
+    title: "Level 3: The smart guard",
+    desc: "This guard recognizes common encodings like base64 and a Caesar shift. You will need a code of your own.",
+    lesson: "A scheme you invent is far less likely to be recognized than a famous one. This is the heart of obfuscation.",
+    hint: "Base64 and Caesar shifts are caught now. Invent your own substitution or pattern instead.",
+    guardBlocks: (raw) => recognizable(raw) || tryBase64(raw) || tryCaesar(raw),
+  },
+  {
+    title: "Level 4: The combination lock",
+    desc: "The toughest guard yet. Stack more than one method together, for example your own code plus inserted spaces.",
+    lesson: "Obfuscations are stronger combined than any single one is alone.",
+    hint: "Combine your own invented scheme with a second trick, like reversing the result or inserting extra characters.",
+    guardBlocks: (raw) => {
+      const variants = [raw, reverseStr(raw), removeSpaces(raw), reverseStr(removeSpaces(raw))];
+      return variants.some(v => recognizable(v) || tryBase64(v) || tryCaesar(v));
+    },
+  },
+];
+
+let current = 0;
+
+function renderProgress() {
+  const el = document.getElementById("progress");
+  el.innerHTML = levels.map((_, i) => {
+    let cls = "dot";
+    if (i < current) cls += " done";
+    else if (i === current) cls += " current";
+    return `<div class="${cls}"></div>`;
+  }).join("");
+}
+
+function renderLevel() {
+  renderProgress();
+
+  if (current >= levels.length) {
+    document.getElementById("game").style.display = "none";
+    document.getElementById("completeBanner").style.display = "block";
+    return;
+  }
+
+  const lvl = levels[current];
+  document.getElementById("game").innerHTML = `
+    <div class="game-card">
+      <div class="level-badge">Crack the safe</div>
+      <div class="level-title">${lvl.title}</div>
+      <div class="guard-desc">${lvl.desc}</div>
+      <label>Your disguised phrase</label>
+      <input type="text" id="disguised" autocomplete="off" spellcheck="false" placeholder="Type your obfuscated version here">
+      <label>What does it mean? (plain English)</label>
+      <input type="text" id="meaning" autocomplete="off" spellcheck="false" placeholder="e.g. open the safe">
+      <div>
+        <button id="submitBtn">Try it</button>
+        <button id="hintBtn" class="hint-btn">Hint</button>
+        <button id="nextBtn" class="next-btn">Next level &#8594;</button>
+      </div>
+      <div class="hint-text" id="hintText">${lvl.hint}</div>
+      <div id="feedback"></div>
+      <div class="lesson-panel" id="lessonPanel"><div class="label">Lesson</div>${lvl.lesson}</div>
+    </div>
+  `;
+
+  const disguisedInput = document.getElementById("disguised");
+  const meaningInput = document.getElementById("meaning");
+  const submitBtn = document.getElementById("submitBtn");
+  const hintBtn = document.getElementById("hintBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const feedback = document.getElementById("feedback");
+  const hintText = document.getElementById("hintText");
+  const lessonPanel = document.getElementById("lessonPanel");
+
+  let won = false;
+
+  hintBtn.addEventListener("click", () => hintText.classList.add("visible"));
+
+  submitBtn.addEventListener("click", () => {
+    if (won) return;
+    const raw = disguisedInput.value;
+    const meaning = meaningInput.value;
+
+    if (!raw.trim() || !meaning.trim()) {
+      feedback.innerHTML = `<div class="feedback lose">Fill in both fields first.</div>`;
+      return;
+    }
+
+    const meansOpenTheSafe = recognizable(meaning);
+    const guardBlocked = lvl.guardBlocks(raw);
+
+    if (!meansOpenTheSafe) {
+      feedback.innerHTML = `<div class="feedback lose">The safe doesn't recognize your stated meaning as "open the safe." Check the meaning field.</div>`;
+      return;
+    }
+
+    if (guardBlocked) {
+      feedback.innerHTML = `<div class="feedback lose">The guard caught it. Try disguising it differently.</div>`;
+      return;
+    }
+
+    won = true;
+    feedback.innerHTML = `<div class="feedback win">The safe opens. Your disguise slipped past the guard, and the safe still recognized what you meant.</div>`;
+    lessonPanel.classList.add("visible");
+    submitBtn.disabled = true;
+    nextBtn.classList.add("visible");
+  });
+
+  nextBtn.addEventListener("click", () => {
+    current++;
+    renderLevel();
+  });
+}
+
+renderLevel();
+</script>
+</body>
+</html>
